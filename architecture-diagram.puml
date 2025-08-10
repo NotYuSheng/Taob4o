@@ -1,0 +1,67 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam roundCorner 15
+skinparam shadowing false
+
+title Taobao Clone - Microservices Architecture
+
+actor "End User" as user #lightblue
+
+package "Kubernetes Cluster" {
+    
+    package "Istio Service Mesh" {
+        
+        node "Istio Gateway" as gateway #lightgreen
+        
+        node "Frontend Service\n(React + Nginx)" as frontend #skyblue
+        node "User Service\n(FastAPI)" as user_svc #lightpink  
+        node "Product Service\n(FastAPI)" as product_svc #plum
+        node "Cart Service\n(FastAPI)" as cart_svc #khaki
+        node "Order Service\n(FastAPI)" as order_svc #lightsalmon
+        node "Payment Service\n(FastAPI)" as payment_svc #lightgreen
+        node "Inventory Service\n(FastAPI)" as inventory_svc #wheat
+    }
+    
+    database "PostgreSQL\nDatabase" as db #gold
+}
+
+user --> gateway : HTTPS
+gateway --> frontend : /
+gateway --> user_svc : /api/users
+gateway --> product_svc : /api/products
+gateway --> cart_svc : /api/cart
+gateway --> order_svc : /api/orders
+
+frontend --> user_svc : API calls
+frontend --> product_svc : API calls
+frontend --> cart_svc : API calls
+frontend --> order_svc : API calls
+
+cart_svc --> product_svc : Product validation
+cart_svc --> inventory_svc : Stock updates
+order_svc --> payment_svc : Payment processing
+order_svc --> inventory_svc : Item reservation
+order_svc --> user_svc : User validation
+
+user_svc --> db : User data
+product_svc --> db : Product data
+cart_svc --> db : Cart data
+order_svc --> db : Order data
+
+note top of gateway
+  **Traffic Management**
+  • Load balancing
+  • Circuit breakers
+  • Fault injection
+  • Rate limiting
+end note
+
+note bottom of db
+  **Deployment Commands**
+  
+  Docker Compose: make up
+  Kubernetes: make k8s-deploy  
+  Istio Mesh: make istio-install
+end note
+
+@enduml
